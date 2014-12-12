@@ -21,10 +21,12 @@ public class FDSSSOClient {
 
   private static final String SSO_SERVICE_TOKEN = "your_service_token";
   private static final String BUCKET_NAME = "your_bucket";
+  private static final String APP_ID = "your_app_id";
 
   public static void main(String[] args) throws Exception {
     // Initialize the sso client
-    GalaxyFDSCredential credential = new SSOCredential(SSO_SERVICE_TOKEN);
+    GalaxyFDSCredential credential = new SSOCredential(
+        SSO_SERVICE_TOKEN, APP_ID);
     FDSClientConfiguration config = new FDSClientConfiguration()
         .withCredential(credential);
     GalaxyFDSClient client = new GalaxyFDSClientImpl(config);

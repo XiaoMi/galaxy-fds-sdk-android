@@ -8,13 +8,26 @@ import com.xiaomi.infra.galaxy.fds.android.util.Args;
 public class SSOCredential implements GalaxyFDSCredential {
   private final String HEADER_VALUE = "SSO";
   private final String SERVICE_TOKEN_PARAM = "serviceToken";
+  private final String APP_ID = "appId";
 
   private final String serviceToken;
+  private final String appId;
 
+  @Deprecated
   public SSOCredential(String serviceToken) {
     Args.notNull(serviceToken, "Service token");
     Args.notEmpty(serviceToken, "Service token");
     this.serviceToken = serviceToken;
+    this.appId = null;
+  }
+
+  public SSOCredential(String serviceToken, String appId) {
+    Args.notNull(serviceToken, "Service token");
+    Args.notEmpty(serviceToken, "Service token");
+    Args.notNull(appId, "App id");
+    Args.notEmpty(appId, "App id");
+    this.serviceToken = serviceToken;
+    this.appId = appId;
   }
 
   @Override
@@ -33,6 +46,13 @@ public class SSOCredential implements GalaxyFDSCredential {
     builder.append(SERVICE_TOKEN_PARAM);
     builder.append('=');
     builder.append(serviceToken);
+
+    if (appId != null) {
+      builder.append('&');
+      builder.append(APP_ID);
+      builder.append('=');
+      builder.append(appId);
+    }
 
     return builder.toString();
   }
