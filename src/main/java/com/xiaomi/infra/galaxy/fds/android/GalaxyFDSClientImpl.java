@@ -76,15 +76,16 @@ public class GalaxyFDSClientImpl implements GalaxyFDSClient {
   private final HttpClient httpClient;
 
   public GalaxyFDSClientImpl(FDSClientConfiguration config) {
-    this(config.getFdsServiceBaseUri(), config.getCredential(), config);
+    this.config = config;
+    this.httpClient = createHttpClient(this.config);
   }
 
+  @Deprecated
   public GalaxyFDSClientImpl(String fdsServiceBaseUri,
       GalaxyFDSCredential credential, FDSClientConfiguration config) {
     this.config = config;
-    this.config.setFdsServiceBaseUri(fdsServiceBaseUri);
     this.config.setCredential(credential);
-    httpClient = createHttpClient(this.config);
+    this.httpClient = createHttpClient(this.config);
   }
 
   private HttpClient createHttpClient(FDSClientConfiguration config) {
@@ -108,8 +109,7 @@ public class GalaxyFDSClientImpl implements GalaxyFDSClient {
     SocketFactory socketFactory = PlainSocketFactory.getSocketFactory();
     registry.register(new Scheme(HTTP_SCHEME, socketFactory, 80));
 
-    if (config.getFdsServiceBaseUri().startsWith(HTTPS_SCHEME) ||
-        config.getCdnServiceBaseUri().startsWith(HTTPS_SCHEME)) {
+    if (config.isHttpsEnabled()) {
       SSLSocketFactory sslSocketFactory = SSLSocketFactory.getSocketFactory();
       sslSocketFactory.setHostnameVerifier(
           SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
@@ -152,26 +152,27 @@ public class GalaxyFDSClientImpl implements GalaxyFDSClient {
   public FDSObject getObject(String bucketName, String objectName, long offset,
       List<UserParam> params, ProgressListener listener)
       throws GalaxyFDSClientException {
-    return getObject(bucketName, objectName, offset, params, listener, false);
-  }
-
-  @Override
-  public FDSObject getObject(String bucketName, String objectName, long offset,
-      List<UserParam> params, ProgressListener listener, boolean fromCdn)
-      throws GalaxyFDSClientException {
     Args.notNull(bucketName, "bucket name");
     Args.notEmpty(bucketName, "bucket name");
     Args.notNull(objectName, "object name");
     Args.notEmpty(objectName, "object name");
 
     StringBuilder builder = new StringBuilder();
-    if (fromCdn) {
-      builder.append(config.getCdnServiceBaseUri());
-    } else {
-      builder.append(config.getFdsServiceBaseUri());
-    }
+    builder.append(config.getDownloadBaseUri());
     builder.append("/" + bucketName + "/" + objectName);
     return getObject(builder.toString(), offset, params, listener);
+  }
+
+  /**
+   * In this deprecated method, parameter fromCdn is ignored.
+   */
+  @Override
+  @Deprecated
+  public FDSObject getObject(String bucketName, String objectName, long offset,
+      List<UserParam> params, ProgressListener listener, boolean fromCdn)
+      throws GalaxyFDSClientException {
+    // Ignore param fromCdn.
+    return getObject(bucketName, objectName, offset, params, listener);
   }
 
   @Override
@@ -271,15 +272,6 @@ public class GalaxyFDSClientImpl implements GalaxyFDSClient {
   public ObjectMetadata getObject(String bucketName, String objectName,
       File destinationFile, List<UserParam> params, ProgressListener listener)
       throws GalaxyFDSClientException {
-    return getObject(bucketName, objectName, destinationFile, params, listener,
-        false);
-  }
-
-  @Override
-  public ObjectMetadata getObject(String bucketName, String objectName,
-      File destinationFile, List<UserParam> params,
-      ProgressListener listener, boolean fromCdn)
-      throws GalaxyFDSClientException {
     Args.notNull(destinationFile, "Destination file");
 
     int retriedTimes = 0;
@@ -288,8 +280,7 @@ public class GalaxyFDSClientImpl implements GalaxyFDSClient {
       try {
         boolean isAppend = retriedTimes != 0 && !isGetThumbnail;
         FDSObject object = getObject(bucketName, objectName,
-            isAppend ? destinationFile.length() : 0, params,
-            listener, fromCdn);
+            isAppend ? destinationFile.length() : 0, params, listener);
         // If never retried before, downloads the file from beginning,
         // otherwise downloads the file from the position where last download ends
         Util.downloadObjectToFile(object, destinationFile, isAppend);
@@ -305,6 +296,18 @@ public class GalaxyFDSClientImpl implements GalaxyFDSClient {
       }
     }
   }
+
+  /**
+   * In this deprecated method, parameter fromCdn is ignored.
+   */
+  @Override
+  @Deprecated
+  public ObjectMetadata getObject(String bucketName, String objectName,
+      File destinationFile, List<UserParam> params,
+      ProgressListener listener, boolean fromCdn)
+      throws GalaxyFDSClientException {
+    return getObject(bucketName, objectName, destinationFile, params, listener);
+ }
 
   @Override
   public ObjectMetadata getObject(String uriString, File destinationFile,
@@ -435,7 +438,7 @@ public class GalaxyFDSClientImpl implements GalaxyFDSClient {
 
   private InitMultipartUploadResult initMultipartUpload(String bucketName,
       String objectName, long estimatedSize) throws GalaxyFDSClientException {
-    String uriString = config.getFdsServiceBaseUri() + "/" + bucketName + "/"
+    String uriString = config.getUploadBaseUri() + "/" + bucketName + "/"
         + (objectName == null ? "" : objectName) + "?uploads";
 
     InputStream responseContent = null;
@@ -484,7 +487,7 @@ public class GalaxyFDSClientImpl implements GalaxyFDSClient {
   private UploadPartResult uploadPart(String uploadId, String bucketName,
       String objectName, int partNumber, ObjectInputStream in, long contentLength)
       throws GalaxyFDSClientException {
-    String uriString = config.getFdsServiceBaseUri() + "/" + bucketName + "/"
+    String uriString = config.getUploadBaseUri() + "/" + bucketName + "/"
         + objectName + "?uploadId=" + uploadId + "&partNumber=" + partNumber;
 
     byte[] buffer = new byte[FDSClientConfiguration.DEFAULT_UPLOAD_PART_SIZE];
@@ -567,7 +570,7 @@ public class GalaxyFDSClientImpl implements GalaxyFDSClient {
       UploadPartResultList uploadPartResultList, List<UserParam> params)
       throws GalaxyFDSClientException {
     StringBuilder builder = new StringBuilder();
-    builder.append(config.getFdsServiceBaseUri() + "/" + bucketName + "/"
+    builder.append(config.getUploadBaseUri() + "/" + bucketName + "/"
         + objectName + "?uploadId=" + uploadId);
     if (params != null) {
       for (UserParam param : params) {
@@ -604,8 +607,8 @@ public class GalaxyFDSClientImpl implements GalaxyFDSClient {
             " completing multipart upload. bucket name:" + bucketName
             + ", object name:" + objectName + ", upload ID:" + uploadId);
       }
-      result.setFdsServiceBaseUri(config.getFdsServiceBaseUri());
-      result.setCdnServiceBaseUri(config.getCdnServiceBaseUri());
+      result.setFdsServiceBaseUri(config.getBaseUri());
+      result.setCdnServiceBaseUri(config.getCdnBaseUri());
       return result;
     } catch (IOException e) {
       throw new GalaxyFDSClientException("Fail to complete multipart upload. "
@@ -623,7 +626,7 @@ public class GalaxyFDSClientImpl implements GalaxyFDSClient {
 
   private void abortMultipartUpload(String bucketName, String objectName,
       String uploadId) throws GalaxyFDSClientException {
-    String uriString = config.getFdsServiceBaseUri() + "/" + bucketName + "/"
+    String uriString = config.getUploadBaseUri() + "/" + bucketName + "/"
         + objectName + "?uploadId=" + uploadId;
 
     InputStream responseContent = null;
@@ -699,7 +702,7 @@ public class GalaxyFDSClientImpl implements GalaxyFDSClient {
     Args.notNull(objectName, "object name");
     Args.notEmpty(objectName, "object name");
 
-    String uriString = config.getFdsServiceBaseUri() + "/" + bucketName + "/"
+    String uriString = config.getBaseUri() + "/" + bucketName + "/"
         + objectName;
     try {
       HttpUriRequest request = RequestFactory.createRequest(uriString,

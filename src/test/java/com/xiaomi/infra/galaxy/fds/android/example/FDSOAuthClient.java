@@ -35,8 +35,7 @@ public class FDSOAuthClient {
         APP_ID, OAUTH_APP_ID, OAUTH_ACCESS_TOKEN, OAUTH_PROVIDER,
         OAUTH_MAC_KEY, OAUTH_MAC_ALGORITHM);
     FDSClientConfiguration config = new FDSClientConfiguration()
-        .withCredential(credential)
-        .withFdsServiceBaseUri(FDS_BASE_URI);
+        .withCredential(credential);
     GalaxyFDSClient client = new GalaxyFDSClientImpl(config);
 
     // Put an object to a specified bucket with a given name, if the object

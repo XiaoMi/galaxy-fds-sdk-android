@@ -5,17 +5,12 @@ import com.xiaomi.infra.galaxy.fds.android.util.Args;
 
 public class FDSClientConfiguration {
 
-  /**
-   * The default uri for fds service base uri
-   */
-  public static final String DEFAULT_FDS_SERVICE_BASE_URI =
-      "https://files.fds.api.xiaomi.com";
-
-  /**
-   * The default uri for cdn service uri
-   */
-  public static final String DEFAULT_CDN_SERVICE_URI =
-      "https://cdns.fds.api.xiaomi.com";
+  private static final String URI_HTTP_PREFIX = "http://";
+  private static final String URI_HTTPS_PREFIX = "https://";
+  private static final String URI_FILES = "files";
+  private static final String URI_CDN = "cdn";
+  private static final String URI_CDNS = "cdns";
+  private static final String URI_FDS_SUFFIX = ".fds.api.xiaomi.com";
 
   /**
    * The default timeout for a connected socket.
@@ -78,15 +73,13 @@ public class FDSClientConfiguration {
    */
   private GalaxyFDSCredential credential;
 
-  /**
-   * The base URI for FDS service
-   */
-  private String fdsServiceBaseUri = DEFAULT_FDS_SERVICE_BASE_URI;
+  private String regionName = "";
+  private boolean enableHttps = true;
+  private boolean enableCdnForUpload = false;
+  private boolean enableCdnForDownload = true;
 
-  /**
-   * The base URI for CDN service
-   */
-  private String cdnServiceBaseUri = DEFAULT_CDN_SERVICE_URI;
+  private boolean enableUnitTestMode = false;
+  private String baseUriForUnitTest = "";
 
   /**
    * Returns the maximum number of retry attempts for failed requests
@@ -378,29 +371,20 @@ public class FDSClientConfiguration {
     return this;
   }
 
-  private static String trimTailingSlash(String uri) {
-    if (uri != null && !uri.isEmpty() && uri.charAt(uri.length() - 1) == '/') {
-      uri = uri.substring(0, uri.length() - 1);
-    }
-
-    return uri;
-  }
-
   /**
    * Gets the base URI of FDS service
    */
+  @Deprecated
   public String getFdsServiceBaseUri() {
-    return fdsServiceBaseUri;
+    return getBaseUri();
   }
 
   /**
    * Sets the base URI of FDS service
    * NOTE: MUST set FDS service base URI before calling any method of Client
    */
+  @Deprecated
   public void setFdsServiceBaseUri(String fdsServiceBaseUri) {
-    Args.notNull(fdsServiceBaseUri, "FDS service base URI");
-    Args.notEmpty(fdsServiceBaseUri, "FDS service base URI");
-    this.fdsServiceBaseUri = trimTailingSlash(fdsServiceBaseUri);
   }
 
   /**
@@ -408,33 +392,154 @@ public class FDSClientConfiguration {
    * NOTE: MUST set FDS service base URI before calling any method of Client
    * @return The updated FDSClientConfiguration object.
    */
+  @Deprecated
   public FDSClientConfiguration withFdsServiceBaseUri(String fdsServiceBaseUri) {
-    setFdsServiceBaseUri(fdsServiceBaseUri);
     return this;
   }
 
   /**
    * Gets the base URI of CDN service
    */
+  @Deprecated
   public String getCdnServiceBaseUri() {
-    return cdnServiceBaseUri;
+    return getCdnBaseUri();
   }
 
   /**
    * Sets the base URI of CDN service
    */
+  @Deprecated
   public void setCdnServiceBaseUri(String cdnServiceBaseUri) {
-    Args.notNull(cdnServiceBaseUri, "CDN service base URI");
-    Args.notEmpty(cdnServiceBaseUri, "CDN service base URI");
-    this.cdnServiceBaseUri = trimTailingSlash(cdnServiceBaseUri);
   }
 
   /**
    * Sets the base URI of CDN service
    * @return The updated FDSClientConfiguration object.
    */
+  @Deprecated
   public FDSClientConfiguration withCdnServiceBaseUri(String cdnServiceBaseUri) {
-    setCdnServiceBaseUri(cdnServiceBaseUri);
     return this;
+  }
+
+  public String getRegionName() {
+    return regionName;
+  }
+
+  public void setRegionName(String regionName) {
+    this.regionName = regionName;
+  }
+
+  public FDSClientConfiguration withRegionName(String regionName) {
+    setRegionName(regionName);
+    return this;
+  }
+
+  public boolean isHttpsEnabled() {
+    return enableHttps;
+  }
+
+  public void enableHttps(boolean enableHttps) {
+    this.enableHttps = enableHttps;
+  }
+
+  public FDSClientConfiguration withHttps(boolean enableHttps) {
+    enableHttps(enableHttps);
+    return this;
+  }
+
+  public boolean isCdnEnabledForUpload() {
+    return enableCdnForUpload;
+  }
+
+  public void enableCdnForUpload(boolean enableCdnForUpload) {
+    this.enableCdnForUpload = enableCdnForUpload;
+  }
+
+  public FDSClientConfiguration withCdnForUpload(boolean enableCdnForUpload) {
+    enableCdnForUpload(enableCdnForUpload);
+    return this;
+  }
+
+  public boolean isCdnEnabledForDownload() {
+    return enableCdnForDownload;
+  }
+
+  public void enableCdnForDownload(boolean enableCdnForDownload) {
+    this.enableCdnForDownload = enableCdnForDownload;
+  }
+
+  public FDSClientConfiguration withCdnForDownload(
+      boolean enableCdnForDownload) {
+    enableCdnForDownload(enableCdnForDownload);
+    return this;
+  }
+
+  boolean isEnabledUnitTestMode() {
+    return enableUnitTestMode;
+  }
+
+  void enableUnitTestMode(boolean enableUnitTestMode) {
+    this.enableUnitTestMode = enableUnitTestMode;
+  }
+
+  FDSClientConfiguration withUnitTestMode(boolean enableUnitTestMode) {
+    enableUnitTestMode(enableUnitTestMode);
+    return this;
+  }
+
+  String getBaseUriForUnitTest() {
+    return this.baseUriForUnitTest;
+  }
+
+  void setBaseUriForUnitTest(String baseUriForUnitTest) {
+    this.baseUriForUnitTest = baseUriForUnitTest;
+  }
+
+  FDSClientConfiguration withBaseUriForUnitTest(String baseUriForUnitTest) {
+    setBaseUriForUnitTest(baseUriForUnitTest);
+    return this;
+  }
+
+  String getBaseUri() {
+    return buildBaseUri(URI_FILES);
+  }
+
+  String getCdnBaseUri() {
+    return buildBaseUri(getCdnRegionNameSuffix());
+  }
+
+  String getDownloadBaseUri() {
+    if (enableCdnForDownload) {
+      return buildBaseUri(getCdnRegionNameSuffix());
+    } else {
+      return buildBaseUri(URI_FILES);
+    }
+  }
+
+  String getUploadBaseUri() {
+    if (enableCdnForUpload) {
+      return buildBaseUri(getCdnRegionNameSuffix());
+    } else {
+      return buildBaseUri(URI_FILES);
+    }
+  }
+
+  String buildBaseUri(String regionNameSuffix) {
+    if (enableUnitTestMode) {
+      return baseUriForUnitTest;
+    }
+
+    StringBuilder sb = new StringBuilder();
+    sb.append(enableHttps ? URI_HTTPS_PREFIX : URI_HTTP_PREFIX);
+    if (!regionName.isEmpty()) {
+      sb.append(regionName + "-");
+    }
+    sb.append(regionNameSuffix);
+    sb.append(URI_FDS_SUFFIX);
+    return sb.toString();
+  }
+
+  private String getCdnRegionNameSuffix() {
+    return enableHttps ? URI_CDNS : URI_CDN;
   }
 }
