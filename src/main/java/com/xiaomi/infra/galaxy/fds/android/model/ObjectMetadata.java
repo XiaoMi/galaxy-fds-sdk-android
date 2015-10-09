@@ -113,6 +113,7 @@ public class ObjectMetadata {
    * @param value The value for the custom user-metadata entry.
    */
   public void addUserMetadata(String key, String value) {
+    this.checkMetadata(key);
     this.userMetadata.put(key, value);
   }
 
@@ -404,6 +405,7 @@ public class ObjectMetadata {
    * @param value The value for the predefined metadata entry.
    */
   public void addPredefinedMetadata(String key, String value) {
+    this.checkMetadata(key);
     predefinedMetadata.put(key, value);
   }
 
@@ -415,5 +417,22 @@ public class ObjectMetadata {
     Map<String, String> copy = new HashMap<String, String>(predefinedMetadata);
     copy.putAll(userMetadata);
     return copy;
+  }
+
+  private void checkMetadata(String key) {
+    boolean isValid = key.startsWith(Consts.XIAOMI_META_HEADER_PREFIX);
+
+    if (!isValid) {
+      for (String m : PREDEFINED_HEADERS) {
+        if (key.equals(m)) {
+          isValid = true;
+          break;
+        }
+      }
+    }
+
+    if (!isValid) {
+      throw new RuntimeException("Invalid metadata: " + key, null);
+    }
   }
 }

@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <groupId>com.xiaomi.infra.galaxy</groupId>
   <artifactId>galaxy-fds-sdk-android</artifactId>
-  <version>1.4-SNAPSHOT</version>
+  <version>1.11-SNAPSHOT</version>
   <modelVersion>4.0.0</modelVersion>
   <name>Galaxy FDS Android SDK</name>
   <description>Xiaomi File Storage Service Android SDK</description>
