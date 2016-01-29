@@ -22,6 +22,11 @@
       <version>${gson.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.xiaomi.infra.galaxy</groupId>
+      <artifactId>galaxy-fds-signer</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
       <version>${httpcomponents.version}</version>
