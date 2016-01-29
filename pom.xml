@@ -5,6 +5,18 @@
   <groupId>com.xiaomi.infra.galaxy</groupId>
   <artifactId>galaxy-fds-sdk-android</artifactId>
   <version>1.11-SNAPSHOT</version>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
   <modelVersion>4.0.0</modelVersion>
   <name>Galaxy FDS Android SDK</name>
   <description>Xiaomi File Storage Service Android SDK</description>
