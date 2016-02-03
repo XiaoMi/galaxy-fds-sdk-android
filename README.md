@@ -10,6 +10,8 @@ FDS Android SDK User Guide
 ========================
 ##### Build jar from the source:
 
-    mvn clean package -DskipTests
+    mvn clean package -DskipTests    
+    use following command to build jar with all dependencies    
+    mvn assembly:assembly -DdescriptorId=jar-with-dependencies
 
 ##### Import the above jar into your project's classpth.
