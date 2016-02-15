@@ -623,7 +623,10 @@ public class GalaxyFDSClientImpl implements GalaxyFDSClient {
     try {
       Map<String, String> headers = null;
       if (metadata != null) {
-        headers = metadata.getAllMetadata();
+        headers = new HashMap<String, String>();
+        for (Map.Entry<String, String> e: metadata.getAllMetadata().entrySet()) {
+          headers.put(e.getKey().toLowerCase(), e.getValue());
+        }
       }
 
       HttpUriRequest request = RequestFactory.createRequest(uriString,
