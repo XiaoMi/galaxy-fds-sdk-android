@@ -48,6 +48,7 @@ public class RequestFactory {
         // Should not set content length here, otherwise the fucking apache
         // library will throw an exception
         headers.remove(HttpHeaders.CONTENT_LENGTH);
+        headers.remove(HttpHeaders.CONTENT_LENGTH.toLowerCase());
         for (Map.Entry<String, String> header : headers.entrySet()) {
           request.addHeader(header.getKey(), header.getValue());
         }
