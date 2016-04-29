@@ -1,7 +1,6 @@
 package com.xiaomi.infra.galaxy.fds.android;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,13 +16,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import android.util.Log;
 import com.google.gson.Gson;
@@ -82,22 +74,10 @@ public class GalaxyFDSClientImpl implements GalaxyFDSClient {
 
   private final FDSClientConfiguration config;
   private final HttpClient httpClient;
-  private ThreadPoolExecutor threadPoolExecutor;
 
   public GalaxyFDSClientImpl(FDSClientConfiguration config) {
     this.config = config;
     this.httpClient = createHttpClient(this.config);
-    BlockingQueue workQueue = new ArrayBlockingQueue<Runnable>(
-        config.getWorkQueueCapacity(), true);
-    this.threadPoolExecutor = new ThreadPoolExecutor(
-        config.getThreadPoolCoreSize(), config.getThreadPoolMaxSize(),
-        config.getThreadPoolKeepAliveSecs(), TimeUnit.SECONDS, workQueue,
-        new ThreadFactory() {
-          @Override
-          public Thread newThread(Runnable r) {
-            return new Thread(r, "FDS-multipart-upload-thread");
-          }
-        });
   }
 
   @Deprecated
@@ -404,8 +384,8 @@ public class GalaxyFDSClientImpl implements GalaxyFDSClient {
   }
 
   @Override
-  public PutObjectResult putObject(final String bucketName, String objectName,
-      InputStream input, final ObjectMetadata metadata, List<UserParam> params,
+  public PutObjectResult putObject(String bucketName, String objectName,
+      InputStream input, ObjectMetadata metadata, List<UserParam> params,
       ProgressListener listener) throws GalaxyFDSClientException {
     Args.notNull(bucketName, "bucket name");
     Args.notEmpty(bucketName, "bucket name");
@@ -429,43 +409,24 @@ public class GalaxyFDSClientImpl implements GalaxyFDSClient {
       uploadId = initMultipartUploadResult.getUploadId();
       int partSize = config.getUploadPartSize();
       int numParts = (int) (contentLength + partSize - 1) / partSize;
-
-      final String finalUploadId = uploadId;
-      final String finalObjectName = objectName;
-      int remainingBytes = (int)contentLength;
-      List<Future<UploadPartResult>> futures
-          = new ArrayList<Future<UploadPartResult>>(numParts);
+      long remainingBytes = contentLength;
       List<UploadPartResult> results = new ArrayList<UploadPartResult>(numParts);
       for (int partNumber = 1; partNumber <= numParts; partNumber++) {
-        final int uploadBytes = Math.min(partSize, remainingBytes);
-        final byte[] buffer = new byte[uploadBytes];
-        final int finalPartNumber = partNumber;
-        objectInputStream.read(buffer, 0, uploadBytes);
-        Future<UploadPartResult> future = threadPoolExecutor
-            .submit(new Callable<UploadPartResult>() {
-              @Override
-              public UploadPartResult call() throws Exception {
-                return uploadPart(finalUploadId, bucketName, finalObjectName,
-                    finalPartNumber, new ObjectInputStream(
-                        new ByteArrayInputStream(buffer), metadata, null),
-                    uploadBytes);
-              }
-            });
-        futures.add(future);
+        long uploadBytes = Math.min(partSize, remainingBytes);
+        UploadPartResult result = uploadPart(uploadId, bucketName, objectName,
+            partNumber, objectInputStream, uploadBytes);
+        results.add(result);
         remainingBytes -= uploadBytes;
-      }
-      for (int partNumber = 1; partNumber <= numParts; partNumber++) {
-        results.add(futures.get(partNumber - 1).get());
       }
       UploadPartResultList uploadPartResultList = new UploadPartResultList();
       uploadPartResultList.setUploadPartResultList(results);
       return completeMultipartUpload(uploadId, bucketName, objectName, metadata,
           uploadPartResultList, params);
-    } catch(Exception e) {
+    } catch(GalaxyFDSClientException e) {
       if (uploadId != null) {
         abortMultipartUpload(bucketName, objectName, uploadId);
       }
-      throw new GalaxyFDSClientException(e);
+      throw e;
     } finally {
       try {
         objectInputStream.close();

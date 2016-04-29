@@ -68,22 +68,6 @@ public class FDSClientConfiguration {
    */
   private int uploadPartSize = DEFAULT_UPLOAD_PART_SIZE;
 
-  public static final int DEFAULT_THREAD_POOL_CORE_SIZE = 4;
-
-  private int threadPoolCoreSize = DEFAULT_THREAD_POOL_CORE_SIZE;
-
-  public static final int DEFAULT_THREAD_POOL_MAX_SIZE = 10;
-
-  private int threadPoolMaxSize = DEFAULT_THREAD_POOL_MAX_SIZE;
-
-  public static final int DEFAULT_THREAD_POOL_KEEP_ALIVE_SECS = 30;
-
-  private int threadPoolKeepAliveSecs = DEFAULT_THREAD_POOL_KEEP_ALIVE_SECS;
-
-  public static final int DEFAULT_WORK_QUEUE_CAPACITY = 10240;
-
-  private int workQueueCapacity = DEFAULT_WORK_QUEUE_CAPACITY;
-
   /**
    * The credential of FDS client
    */
@@ -358,59 +342,6 @@ public class FDSClientConfiguration {
    */
   public FDSClientConfiguration withUploadPartSize(int uploadPartSize) {
     setUploadPartSize(uploadPartSize);
-    return this;
-  }
-
-  public int getThreadPoolCoreSize() {
-    return this.threadPoolCoreSize;
-  }
-
-  public void setThreadPoolCoreSize(int threadPoolCoreSize) {
-    this.threadPoolCoreSize = threadPoolCoreSize;
-  }
-
-  public FDSClientConfiguration withThreadPoolCoreSize(int threadPoolCoreSize) {
-    setThreadPoolCoreSize(threadPoolCoreSize);
-    return this;
-  }
-
-  public int getThreadPoolMaxSize() {
-    return this.threadPoolMaxSize;
-  }
-
-  public void setThreadPoolMaxSize(int threadPoolMaxSize) {
-    this.threadPoolMaxSize = threadPoolMaxSize;
-  }
-
-  public FDSClientConfiguration withThreadPoolMaxSize(int threadPoolMaxSize) {
-    setThreadPoolMaxSize(threadPoolMaxSize);
-    return this;
-  }
-
-  public int getThreadPoolKeepAliveSecs() {
-    return this.threadPoolKeepAliveSecs;
-  }
-
-  public void setThreadPoolKeepAliveSecs(int threadPoolKeepAliveSecs) {
-    this.threadPoolKeepAliveSecs = threadPoolKeepAliveSecs;
-  }
-
-  public FDSClientConfiguration withThreadPoolKeepAliveSecs(
-      int threadPoolKeepAliveSecs) {
-    setThreadPoolKeepAliveSecs(threadPoolKeepAliveSecs);
-    return this;
-  }
-
-  public int getWorkQueueCapacity() {
-    return this.workQueueCapacity;
-  }
-
-  public void setWorkQueueCapacity(int workQueueCapacity) {
-    this.workQueueCapacity = workQueueCapacity;
-  }
-
-  public FDSClientConfiguration withWorkQueueCapacity(int workQueueCapacity) {
-    setWorkQueueCapacity(workQueueCapacity);
     return this;
   }
 
