@@ -424,7 +424,7 @@ public class ObjectMetadata {
 
     if (!isValid) {
       for (String m : PREDEFINED_HEADERS) {
-        if (key.equals(m)) {                                           
+        if (key.equals(m)) {
           isValid = true;
           break;
         }
