@@ -14,7 +14,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import com.xiaomi.infra.galaxy.fds.android.auth.GalaxyFDSCredential;
 import com.xiaomi.infra.galaxy.fds.android.exception.GalaxyFDSClientException;
 import com.xiaomi.infra.galaxy.fds.android.model.HttpHeaders;
-import com.xiaomi.infra.galaxy.fds.android.model.HttpMethod;
+import com.xiaomi.infra.galaxy.fds.model.HttpMethod;
 
 public class RequestFactory {
   public static HttpUriRequest createRequest(String uri,

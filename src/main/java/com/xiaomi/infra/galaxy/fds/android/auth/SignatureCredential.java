@@ -9,16 +9,16 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import com.google.common.collect.LinkedListMultimap;
 import org.apache.http.Header;
 import org.apache.http.client.methods.HttpRequestBase;
 
+import com.xiaomi.infra.galaxy.fds.Common;
 import com.xiaomi.infra.galaxy.fds.android.exception.GalaxyFDSClientException;
 import com.xiaomi.infra.galaxy.fds.android.model.HttpHeaders;
-import com.xiaomi.infra.galaxy.fds.signer.Common;
-import com.xiaomi.infra.galaxy.fds.signer.HttpMethod;
-import com.xiaomi.infra.galaxy.fds.signer.MultivaluedMap;
-import com.xiaomi.infra.galaxy.fds.signer.SignAlgorithm;
-import com.xiaomi.infra.galaxy.fds.signer.Signer;
+import com.xiaomi.infra.galaxy.fds.auth.signature.SignAlgorithm;
+import com.xiaomi.infra.galaxy.fds.auth.signature.Signer;
+import com.xiaomi.infra.galaxy.fds.model.HttpMethod;
 
 public class SignatureCredential implements GalaxyFDSCredential {
   private static final ThreadLocal<SimpleDateFormat> DATE_FORMAT =
@@ -46,9 +46,9 @@ public class SignatureCredential implements GalaxyFDSCredential {
 
     try {
       URI uri = request.getURI();
-      MultivaluedMap httpHeaders = new MultivaluedMap();
+      LinkedListMultimap<String, String> httpHeaders = LinkedListMultimap.create();
       for (Header httpHeader : request.getAllHeaders()) {
-        httpHeaders.add(httpHeader.getName(), httpHeader.getValue());
+        httpHeaders.put(httpHeader.getName(), httpHeader.getValue());
       }
       HttpMethod httpMethod = HttpMethod.valueOf(request.getMethod());
       request.setHeader(HttpHeaders.AUTHORIZATION, Signer.getAuthorizationHeader(
