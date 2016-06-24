@@ -7,10 +7,9 @@ public class FDSClientConfiguration {
 
   private static final String URI_HTTP_PREFIX = "http://";
   private static final String URI_HTTPS_PREFIX = "https://";
-  private static final String URI_FILES = "files";
   private static final String URI_CDN = "cdn";
-  private static final String URI_FDS_SUFFIX = ".fds.api.xiaomi.com";
-  private static final String URI_FDS_SSL_SUFFIX = ".fds-ssl.api.xiaomi.com";
+  private static final String URI_SUFFIX = "fds.api.xiaomi.com";
+  private static final String URI_CDN_SUFFIX = "fds.api.mi-img.com";
 
   /**
    * The default timeout for a connected socket.
@@ -89,7 +88,7 @@ public class FDSClientConfiguration {
    */
   private GalaxyFDSCredential credential;
 
-  private String regionName = "";
+  private String regionName = "cnbj0";
   private boolean enableHttps = true;
   private boolean enableCdnForUpload = false;
   private boolean enableCdnForDownload = true;
@@ -592,30 +591,11 @@ public class FDSClientConfiguration {
 
     StringBuilder sb = new StringBuilder();
     sb.append(enableHttps ? URI_HTTPS_PREFIX : URI_HTTP_PREFIX);
-    sb.append(getBaseUriPrefix(enableCdn, regionName));
-    sb.append(getBaseUriSuffix(enableCdn, enableHttps));
-    return sb.toString();
-  }
-
-  private String getBaseUriPrefix(boolean enableCdn, String regionName) {
-    if (regionName.isEmpty()) {
-      if (enableCdn) {
-        return URI_CDN;
-      }
-      return URI_FILES;
+    if (enableCdn) {
+      sb.append(URI_CDN + "." + regionName + "." + URI_CDN_SUFFIX);
     } else {
-      if (enableCdn) {
-        return regionName + "-" + URI_CDN;
-      } else {
-        return regionName + "-" + URI_FILES;
-      }
+      sb.append(regionName + "." + URI_SUFFIX);
     }
-  }
-
-  private String getBaseUriSuffix(boolean enableCdn, boolean enableHttps) {
-    if (enableCdn && enableHttps) {
-      return URI_FDS_SSL_SUFFIX;
-    }
-    return URI_FDS_SUFFIX;
+    return sb.toString();
   }
 }

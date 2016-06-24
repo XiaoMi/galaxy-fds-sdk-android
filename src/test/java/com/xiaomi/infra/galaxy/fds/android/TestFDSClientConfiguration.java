@@ -7,8 +7,8 @@ import org.junit.Test;
  * Created by zhangjunbin on 12/29/14.
  */
 public class TestFDSClientConfiguration {
-  private static final String URI_FDS_SUFFIX = ".fds.api.xiaomi.com";
-  private static final String URI_FDS_SSL_SUFFIX = ".fds-ssl.api.xiaomi.com";
+  private static final String URI_SUFFIX = "fds.api.xiaomi.com";
+  private static final String URI_CDN_SUFFIX = "fds.api.mi-img.com";
 
   @Test
   public void testDefaultConfigurationValue() {
@@ -23,50 +23,51 @@ public class TestFDSClientConfiguration {
   @Test
   public void testCdnChosen() {
     FDSClientConfiguration fdsConfig = new FDSClientConfiguration();
-    fdsConfig.setRegionName("");
+    fdsConfig.setRegionName("regionName");
     fdsConfig.enableHttps(true);
 
     // Test flag enableCdnForUpload.
     fdsConfig.enableCdnForUpload(false);
     Assert.assertEquals(fdsConfig.getUploadBaseUri(),
-        "https://files" + URI_FDS_SUFFIX);
+        "https://regionName."  + URI_SUFFIX);
     fdsConfig.enableCdnForUpload(true);
     Assert.assertEquals(fdsConfig.getUploadBaseUri(),
-        "https://cdn" + URI_FDS_SSL_SUFFIX);
+        "https://cdn.regionName." + URI_CDN_SUFFIX);
     fdsConfig.enableHttps(false);
     Assert.assertEquals(fdsConfig.getUploadBaseUri(),
-        "http://cdn" + URI_FDS_SUFFIX);
+        "http://cdn.regionName." + URI_CDN_SUFFIX);
 
     // Test flag enableCdnForDownload.
     fdsConfig.enableCdnForDownload(false);
     Assert.assertEquals(fdsConfig.getDownloadBaseUri(),
-        "http://files" + URI_FDS_SUFFIX);
+        "http://regionName." + URI_SUFFIX);
     fdsConfig.enableCdnForDownload(true);
     Assert.assertEquals(fdsConfig.getDownloadBaseUri(),
-        "http://cdn" + URI_FDS_SUFFIX);
+        "http://cdn.regionName." + URI_CDN_SUFFIX);
     fdsConfig.enableHttps(true);
     Assert.assertEquals(fdsConfig.getDownloadBaseUri(),
-        "https://cdn" + URI_FDS_SSL_SUFFIX);
+        "https://cdn.regionName." + URI_CDN_SUFFIX);
   }
 
   @Test
   public void testBuildBaseUri() {
-    final String regionName = "regionName";
+    final String regionNameA = "regionNameA";
+    final String regionNameB = "regionNameB";
     FDSClientConfiguration fdsConfig = new FDSClientConfiguration();
 
     // Test against flag enable https.
-    fdsConfig.setRegionName("");
+    fdsConfig.setRegionName(regionNameA);
     fdsConfig.enableHttps(true);
-    Assert.assertEquals("https://files" + URI_FDS_SUFFIX,
+    Assert.assertEquals("https://" + regionNameA + "." + URI_SUFFIX,
         fdsConfig.buildBaseUri(false));
     fdsConfig.enableHttps(false);
-    Assert.assertEquals("http://files" + URI_FDS_SUFFIX,
+    Assert.assertEquals("http://" + regionNameA + "." +  URI_SUFFIX,
         fdsConfig.buildBaseUri(false));
 
     // Test against region name.
-    fdsConfig.setRegionName(regionName);
+    fdsConfig.setRegionName(regionNameB);
     fdsConfig.enableHttps(true);
-    Assert.assertEquals("https://" + regionName + "-files" +
-        URI_FDS_SUFFIX, fdsConfig.buildBaseUri(false));
+    Assert.assertEquals("https://" + regionNameB + "." +
+        URI_SUFFIX, fdsConfig.buildBaseUri(false));
   }
 }
