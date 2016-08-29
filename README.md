@@ -51,8 +51,8 @@ allprojects {
 dependencies {
     ...
     compile 'com.google.guava:guava:15.0'
-    compile 'com.xiaomi.infra.galaxy:galaxy-fds-core:3.0.5'
-    compile 'com.xiaomi.infra.galaxy:galaxy-fds-sdk-android:3.0.5'
+    compile 'com.xiaomi.infra.galaxy:galaxy-fds-core:3.0.8'
+    compile 'com.xiaomi.infra.galaxy:galaxy-fds-sdk-android:3.0.8'
     compile 'com.google.code.gson:gson:2.6.2'
     ...
 }
