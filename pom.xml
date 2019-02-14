@@ -31,7 +31,7 @@
   </licenses>
   <url>http://dev.xiaomi.com/doc?page_id=5101</url>
   <properties>
-    <httpcomponents.version>4.3.3</httpcomponents.version>
+    <httpcomponents.version>4.3.6</httpcomponents.version>
     <wiremock.version>1.46</wiremock.version>
     <junit.version>4.11</junit.version>
     <gson.version>2.2.4</gson.version>
